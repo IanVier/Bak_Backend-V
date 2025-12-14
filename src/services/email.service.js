@@ -36,7 +36,7 @@ const loadTemplate = async (templateName) => {
 const sendVerifyEmailTo = async (userData) => {
     if (!apiInstance) {
         console.warn('⚠️ Brevo no configurado');
-        return;
+        return { success: false, reason: 'Brevo not configured' };
     }
 
     try {
@@ -54,8 +54,10 @@ const sendVerifyEmailTo = async (userData) => {
 
         await apiInstance.sendTransacEmail(sendSmtpEmail);
         console.log(`✅ Email de verificación enviado a ${userData.email}`);
+        return { success: true, email: userData.email };
     } catch (error) {
         console.error('❌ Error enviando email:', error.response?.body || error.message);
+        return { success: false, reason: error.message };
     }
 };
 
@@ -132,7 +134,7 @@ const sendTripUpdateNotification = async (participants, oldTrip, updatedTrip, cr
 const sendPendingRequestEmail = async (newParticipation) => {
     if (!apiInstance) {
         console.warn('⚠️ Brevo no configurado');
-        return;
+        return { success: false, reason: 'Brevo API not configured' };
     }
 
     try {
@@ -142,12 +144,15 @@ const sendPendingRequestEmail = async (newParticipation) => {
         const trip = await TripsModel.tripsById(id_trip);
 
         if (!participant || !trip) {
-            console.error('❌ Faltan datos');
-            return;
+            console.error('❌ Faltan datos de participante o viaje');
+            return { success: false, reason: 'Missing participant or trip data' };
         }
 
         const creator = await UsersModel.selectById(trip.id_creator);
-        if (!creator) return;
+        if (!creator) {
+            console.error('❌ Creator not found');
+            return { success: false, reason: 'Creator not found' };
+        }
 
         let html = await loadTemplate('pendingRequest.html');
 
@@ -176,9 +181,10 @@ const sendPendingRequestEmail = async (newParticipation) => {
 
         await apiInstance.sendTransacEmail(sendSmtpEmail);
         console.log(`✅ Email enviado a ${creator.email}`);
+        return { success: true, email: creator.email };
     } catch (error) {
         console.error('❌ Error:', error.response?.body || error.message);
-        throw error;
+        return { success: false, reason: error.message };
     }
 };
 

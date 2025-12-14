@@ -17,13 +17,19 @@ const create = async (req, res) => {
       user: newUser,
     });
 
-    sendVerifyEmailTo(newUser).catch((err) => {
-      console.error('Error enviando email verificación:', err);
-    });
+    // Enviar email de verificación en segundo plano (sin bloquear la respuesta)
+    sendVerifyEmailTo(newUser)
+      .then((result) => {
+        if (result.success) {
+          console.log('✅ Email de verificación enviado a:', result.email);
+        } else {
+          console.warn('⚠️ Email de verificación NO enviado. Razón:', result.reason);
+        }
+      })
+      .catch((err) => {
+        console.error('❌ Error enviando email de verificación:', err.message);
+      });
 
-    //Se envía en la creación el correo de verificación
-    // await sendVerifyEmailTo(newUser);
-    // res.json(newUser);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Error al insertar el nuevo usuario!' });

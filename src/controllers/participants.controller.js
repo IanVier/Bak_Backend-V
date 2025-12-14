@@ -127,7 +127,7 @@ const createParticipation = async (req, res) => {
     const existing = await ParticipantsModel.selectByTripAndUser(tripId, userId);
 
     if (existing) {
-      console.log('⛔ Solicitud rechazada: Ya existe'); // <--- LOG 2
+      console.log('❌ Solicitud rechazada: Ya existe'); // <--- LOG 2
       return res.status(400).json({
         error: 'You already have a request for this trip',
       });
@@ -135,24 +135,23 @@ const createParticipation = async (req, res) => {
 
     // Insertar en la bbdd la solicitud de participación
     const insertId = await ParticipantsModel.insertParticipation(tripId, userId, message);
-console.log('✅ Participación insertada ID:', insertId); // <--- LOG 3
+    console.log('✅ Participación insertada ID:', insertId); // <--- LOG 3
+    
     const newParticipation = await ParticipantsModel.selectParticipationById(insertId);
-console.log('📧 Intentando enviar email...'); // <--- LOG 4
+    console.log('📧 Intentando enviar email...'); // <--- LOG 4
+    
     // Enviar email al creador del viaje notificando nueva solicitud (en segundo plano)
-// En createParticipation
-  sendPendingRequestEmail(newParticipation)
-  .then((result) => {
-    // Si result es undefined, es que no había transporter configurado
-    if (result) {
-        console.log('✅ Email enviado correctamente:', insertId);
-    } else {
-        console.warn('⚠️ Email NO enviado (Faltan credenciales en .env):', insertId);
-    }
-  })
-  .catch(err => console.error('❌ Error enviando email:', insertId, err.message));
+    sendPendingRequestEmail(newParticipation)
+      .then((result) => {
+        if (result.success) {
+          console.log('✅ Email enviado correctamente a:', result.email);
+        } else {
+          console.warn('⚠️ Email NO enviado. Razón:', result.reason);
+        }
+      })
+      .catch(err => console.error('❌ Error enviando email:', err.message));
 
     return res.status(201).json(newParticipation);
-
 
   } catch (error) {
     console.error('Error in createParticipation:', error);

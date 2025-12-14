@@ -141,11 +141,13 @@ const notifyParticipantsOfChanges = async (tripId, oldTrip, updatedTrip, creator
     if (participants.length > 0) {
       const results = await sendTripUpdateNotification(participants, oldTrip, updatedTrip, creatorEmail);
 
-      // Verificamos si results existe antes de leer .length
-      if (results && results.length) {
-        console.log(`✅ Notificaciones procesadas. Total enviadas/intentadas: ${results.length}`);
+      // results es un objeto { sent, failed, total }
+      if (results && results.sent > 0) {
+        console.log(`✅ Notificaciones procesadas. Enviadas: ${results.sent}/${results.total}`);
+      } else if (results && results.total === 0) {
+        console.warn('⚠️ No hay participantes a notificar');
       } else {
-        console.warn('⚠️ No se enviaron notificaciones (Revise GMAIL_USER en .env)');
+        console.warn('⚠️ No se enviaron notificaciones correctamente. Revise BREVO_API_KEY en .env');
       }
     }
   } catch (error) {

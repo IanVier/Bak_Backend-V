@@ -9,7 +9,7 @@ require('dotenv').config();
 
 // ================= CONFIGURACIÓN =================
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const FROM_EMAIL = 'appviajesunir@gmail.com'; // ✅ Tu Gmail funciona aquí
+const FROM_EMAIL = 'appviajesunir@gmail.com'; 
 const FROM_NAME = 'Viajes Compartidos';
 
 let apiInstance = null;
